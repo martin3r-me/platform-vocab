@@ -1,3 +1,7 @@
+<div x-data @play-tts.window="
+    const audio = new Audio($event.detail.audio);
+    audio.play().catch(() => {});
+">
 <x-ui-page>
     <x-slot name="navbar">
         <x-ui-page-navbar title="" />
@@ -153,10 +157,20 @@
                                 @else
                                     {{-- View Mode --}}
                                     <td class="px-4 py-3">
-                                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $entry->term }}</span>
-                                        @if($entry->plural)
-                                        <span class="text-xs text-gray-400 ml-1">(Pl: {{ $entry->plural }})</span>
-                                        @endif
+                                        <div class="flex items-center gap-1.5">
+                                            <button wire:click="playTts({{ $entry->id }})" wire:loading.attr="disabled" wire:target="playTts({{ $entry->id }})" class="flex-shrink-0 p-1 rounded-md text-gray-300 hover:text-violet-500 hover:bg-violet-500/10 transition-colors" title="Aussprache anhören">
+                                                <span wire:loading wire:target="playTts({{ $entry->id }})">
+                                                    <svg class="animate-spin w-3.5 h-3.5 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                </span>
+                                                <span wire:loading.remove wire:target="playTts({{ $entry->id }})">
+                                                    @svg('heroicon-o-speaker-wave', 'w-3.5 h-3.5')
+                                                </span>
+                                            </button>
+                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $entry->term }}</span>
+                                            @if($entry->plural)
+                                            <span class="text-xs text-gray-400">(Pl: {{ $entry->plural }})</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{{ $entry->translation }}</td>
                                     <td class="px-4 py-3">
@@ -304,3 +318,4 @@
         </x-ui-page-sidebar>
     </x-slot>
 </x-ui-page>
+</div>
