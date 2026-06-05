@@ -8,6 +8,10 @@
             @svg('heroicon-o-home', 'w-4 h-4 text-[var(--ui-secondary)]')
             <span class="ml-2 text-sm">Dashboard</span>
         </x-ui-sidebar-item>
+        <x-ui-sidebar-item :href="route('vocab.catalogs.index')" :active="request()->routeIs('vocab.catalogs.*')">
+            @svg('heroicon-o-rectangle-stack', 'w-4 h-4 text-[var(--ui-secondary)]')
+            <span class="ml-2 text-sm">Bibliothek</span>
+        </x-ui-sidebar-item>
         <x-ui-sidebar-item :href="route('vocab.lists.index')" :active="request()->routeIs('vocab.lists.index')">
             @svg('heroicon-o-list-bullet', 'w-4 h-4 text-[var(--ui-secondary)]')
             <span class="ml-2 text-sm">Listen</span>
@@ -57,6 +61,9 @@
         <div class="flex flex-col gap-2">
             <a href="{{ route('vocab.dashboard') }}" wire:navigate class="flex items-center justify-center p-2 rounded-md text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)] {{ request()->routeIs('vocab.dashboard') ? 'bg-[var(--ui-primary-5)] text-[var(--ui-primary)]' : '' }}">
                 @svg('heroicon-o-home', 'w-5 h-5')
+            </a>
+            <a href="{{ route('vocab.catalogs.index') }}" wire:navigate class="flex items-center justify-center p-2 rounded-md text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)] {{ request()->routeIs('vocab.catalogs.*') ? 'bg-[var(--ui-primary-5)] text-[var(--ui-primary)]' : '' }}">
+                @svg('heroicon-o-rectangle-stack', 'w-5 h-5')
             </a>
             <a href="{{ route('vocab.lists.index') }}" wire:navigate class="flex items-center justify-center p-2 rounded-md text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)] {{ request()->routeIs('vocab.lists.index') ? 'bg-[var(--ui-primary-5)] text-[var(--ui-primary)]' : '' }}">
                 @svg('heroicon-o-list-bullet', 'w-5 h-5')

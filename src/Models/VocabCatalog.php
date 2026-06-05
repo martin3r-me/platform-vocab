@@ -2,6 +2,7 @@
 
 namespace Platform\Vocab\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -64,5 +65,22 @@ class VocabCatalog extends Model
     public function isPersonal(): bool
     {
         return $this->visibility === self::VISIBILITY_PERSONAL;
+    }
+
+    public function isOwnedBy(int $userId): bool
+    {
+        return $this->created_by_user_id === $userId;
+    }
+
+    public function scopeVisibleTo(Builder $query, int $userId, int $teamId): Builder
+    {
+        return $query->where('team_id', $teamId)
+            ->where(function (Builder $q) use ($userId) {
+                $q->where('visibility', self::VISIBILITY_TEAM)
+                    ->orWhere(function (Builder $personal) use ($userId) {
+                        $personal->where('visibility', self::VISIBILITY_PERSONAL)
+                            ->where('created_by_user_id', $userId);
+                    });
+            });
     }
 }
