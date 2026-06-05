@@ -26,7 +26,6 @@ class Play extends Component
     public bool $answered = false;
     public ?array $feedback = null;
     public array $results = [];
-    public bool $loading = false;
 
     public function mount(string $uuid)
     {
@@ -37,13 +36,10 @@ class Play extends Component
 
     public function startQuiz()
     {
-        $this->loading = true;
-
         try {
             $entries = $this->list->entries()->get();
             if ($entries->isEmpty()) {
                 $this->addError('quiz', 'Die Liste enthält keine Vokabeln.');
-                $this->loading = false;
                 return;
             }
 
@@ -67,7 +63,8 @@ class Play extends Component
             $openAi = app(\Platform\Core\Services\OpenAiService::class);
             $result = $openAi->chat(
                 [['role' => 'user', 'content' => $prompt]],
-                options: ['tools' => false, 'max_tokens' => 3000, 'temperature' => 0.5]
+                'gpt-4o-mini',
+                ['tools' => false, 'max_tokens' => 3000, 'temperature' => 0.5]
             );
 
             $content = $result['content'] ?? '';
@@ -79,8 +76,7 @@ class Play extends Component
             }
 
             if (empty($this->questions)) {
-                $this->addError('quiz', 'Konnte kein Quiz generieren.');
-                $this->loading = false;
+                $this->addError('quiz', 'Konnte kein Quiz generieren. Bitte erneut versuchen.');
                 return;
             }
 
@@ -88,18 +84,26 @@ class Play extends Component
             $this->currentIndex = 0;
             $this->results = [];
             $this->quizFinished = false;
-            $this->loading = false;
         } catch (\Throwable $e) {
             $this->addError('quiz', 'Fehler: ' . $e->getMessage());
-            $this->loading = false;
         }
+    }
+
+    public function selectOption(int $index)
+    {
+        if ($this->answered) return;
+
+        $question = $this->questions[$this->currentIndex] ?? null;
+        if (!$question || empty($question['options'][$index])) return;
+
+        $this->userAnswer = $question['options'][$index];
+        $this->submitAnswer();
     }
 
     public function submitAnswer()
     {
         if ($this->answered || empty($this->userAnswer)) return;
 
-        $this->loading = true;
         $this->answered = true;
 
         try {
@@ -118,7 +122,8 @@ class Play extends Component
                 $openAi = app(\Platform\Core\Services\OpenAiService::class);
                 $result = $openAi->chat(
                     [['role' => 'user', 'content' => $prompt]],
-                    options: ['tools' => false, 'max_tokens' => 500, 'temperature' => 0.3]
+                    'gpt-4o-mini',
+                    ['tools' => false, 'max_tokens' => 500, 'temperature' => 0.3]
                 );
 
                 $content = $result['content'] ?? '';
@@ -143,8 +148,6 @@ class Play extends Component
                 'correct' => (bool)($this->feedback['correct'] ?? false),
                 'expected' => $this->feedback['expected'] ?? '',
             ];
-
-            $this->loading = false;
         } catch (\Throwable $e) {
             $this->feedback = [
                 'correct' => false,
@@ -157,7 +160,6 @@ class Play extends Component
                 'correct' => false,
                 'expected' => '',
             ];
-            $this->loading = false;
         }
     }
 
