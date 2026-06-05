@@ -1,0 +1,208 @@
+<?php
+
+namespace Platform\Vocab\Livewire\Lists;
+
+use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
+use Platform\Vocab\Models\VocabList;
+use Platform\Vocab\Models\VocabEntry;
+
+class Show extends Component
+{
+    public string $uuid;
+    public ?VocabList $list = null;
+
+    // Inline Add
+    public string $newTerm = '';
+    public string $newTranslation = '';
+    public string $newGender = '';
+    public string $newWordType = '';
+
+    // Edit Entry
+    public ?int $editingEntryId = null;
+    public string $editTerm = '';
+    public string $editTranslation = '';
+    public string $editGender = '';
+    public string $editPlural = '';
+    public string $editWordType = '';
+    public string $editExampleSentence = '';
+    public string $editNotes = '';
+    public string $editPronunciation = '';
+
+    // Edit List
+    public bool $showEditListModal = false;
+    public string $editListName = '';
+    public string $editListDescription = '';
+    public string $editListLevel = '';
+
+    // Generate More
+    public bool $showGenerateModal = false;
+    public string $generateTopic = '';
+    public int $generateCount = 10;
+    public bool $generating = false;
+
+    public function mount(string $uuid)
+    {
+        $this->uuid = $uuid;
+        $team = Auth::user()->currentTeam;
+        $this->list = VocabList::where('team_id', $team->id)->where('uuid', $uuid)->firstOrFail();
+    }
+
+    public function addEntry()
+    {
+        $this->validate([
+            'newTerm' => 'required|string|max:255',
+            'newTranslation' => 'required|string|max:255',
+        ]);
+
+        $maxSort = $this->list->entries()->max('sort_order') ?? 0;
+
+        VocabEntry::create([
+            'vocab_list_id' => $this->list->id,
+            'term' => $this->newTerm,
+            'translation' => $this->newTranslation,
+            'gender' => $this->newGender ?: null,
+            'word_type' => $this->newWordType ?: null,
+            'sort_order' => $maxSort + 1,
+        ]);
+
+        $this->reset(['newTerm', 'newTranslation', 'newGender', 'newWordType']);
+    }
+
+    public function startEditing(int $entryId)
+    {
+        $entry = VocabEntry::findOrFail($entryId);
+        $this->editingEntryId = $entryId;
+        $this->editTerm = $entry->term;
+        $this->editTranslation = $entry->translation;
+        $this->editGender = $entry->gender ?? '';
+        $this->editPlural = $entry->plural ?? '';
+        $this->editWordType = $entry->word_type ?? '';
+        $this->editExampleSentence = $entry->example_sentence ?? '';
+        $this->editNotes = $entry->notes ?? '';
+        $this->editPronunciation = $entry->pronunciation ?? '';
+    }
+
+    public function saveEntry()
+    {
+        $this->validate([
+            'editTerm' => 'required|string|max:255',
+            'editTranslation' => 'required|string|max:255',
+        ]);
+
+        $entry = VocabEntry::findOrFail($this->editingEntryId);
+        $entry->update([
+            'term' => $this->editTerm,
+            'translation' => $this->editTranslation,
+            'gender' => $this->editGender ?: null,
+            'plural' => $this->editPlural ?: null,
+            'word_type' => $this->editWordType ?: null,
+            'example_sentence' => $this->editExampleSentence ?: null,
+            'notes' => $this->editNotes ?: null,
+            'pronunciation' => $this->editPronunciation ?: null,
+        ]);
+
+        $this->editingEntryId = null;
+    }
+
+    public function cancelEditing()
+    {
+        $this->editingEntryId = null;
+    }
+
+    public function deleteEntry(int $entryId)
+    {
+        VocabEntry::where('vocab_list_id', $this->list->id)->findOrFail($entryId)->delete();
+    }
+
+    public function openEditListModal()
+    {
+        $this->editListName = $this->list->name;
+        $this->editListDescription = $this->list->description ?? '';
+        $this->editListLevel = $this->list->level ?? '';
+        $this->showEditListModal = true;
+    }
+
+    public function saveListDetails()
+    {
+        $this->validate(['editListName' => 'required|string|max:255']);
+
+        $this->list->update([
+            'name' => $this->editListName,
+            'description' => $this->editListDescription ?: null,
+            'level' => $this->editListLevel ?: null,
+        ]);
+        $this->list->refresh();
+        $this->showEditListModal = false;
+    }
+
+    public function generateMore()
+    {
+        $this->validate([
+            'generateTopic' => 'required|string|max:255',
+            'generateCount' => 'required|integer|min:5|max:50',
+        ]);
+
+        $this->generating = true;
+
+        try {
+            $openAi = app(\Platform\Core\Services\OpenAiService::class);
+            $prompt = \Platform\Vocab\Prompts\VocabPrompts::generateVocab(
+                $this->generateTopic,
+                $this->list->source_language,
+                $this->list->target_language,
+                $this->list->level ?? 'A1',
+                $this->generateCount
+            );
+
+            $result = $openAi->chat(
+                [['role' => 'user', 'content' => $prompt]],
+                options: ['tools' => false, 'max_tokens' => 4000, 'temperature' => 0.7]
+            );
+
+            $content = $result['content'] ?? '';
+            $jsonMatch = [];
+            if (preg_match('/\[[\s\S]*\]/', $content, $jsonMatch)) {
+                $vocabData = json_decode($jsonMatch[0], true);
+            } else {
+                $vocabData = json_decode($content, true);
+            }
+
+            if (is_array($vocabData)) {
+                $maxSort = $this->list->entries()->max('sort_order') ?? 0;
+                foreach ($vocabData as $data) {
+                    if (empty($data['term']) || empty($data['translation'])) continue;
+                    $maxSort++;
+                    VocabEntry::create([
+                        'vocab_list_id' => $this->list->id,
+                        'term' => (string)$data['term'],
+                        'translation' => (string)$data['translation'],
+                        'gender' => $data['gender'] ?? null,
+                        'plural' => $data['plural'] ?? null,
+                        'word_type' => $data['word_type'] ?? null,
+                        'example_sentence' => $data['example_sentence'] ?? null,
+                        'notes' => $data['notes'] ?? null,
+                        'pronunciation' => $data['pronunciation'] ?? null,
+                        'sort_order' => $maxSort,
+                    ]);
+                }
+            }
+
+            $this->showGenerateModal = false;
+            $this->generating = false;
+            $this->reset(['generateTopic']);
+        } catch (\Throwable $e) {
+            $this->generating = false;
+            $this->addError('generate', 'Fehler: ' . $e->getMessage());
+        }
+    }
+
+    public function render()
+    {
+        $entries = $this->list->entries()->orderBy('sort_order')->get();
+
+        return view('vocab::livewire.lists.show', [
+            'entries' => $entries,
+        ])->layout('platform::layouts.app');
+    }
+}
