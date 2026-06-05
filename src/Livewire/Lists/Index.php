@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Platform\Vocab\Models\VocabList;
+use Platform\Vocab\Livewire\Sidebar;
 
 class Index extends Component
 {
@@ -169,7 +170,18 @@ class Index extends Component
             $query->where('level', $this->filterLevel);
         }
 
-        $lists = $query->orderBy('updated_at', 'desc')->paginate(20);
+        $allLists = $query->orderBy('updated_at', 'desc')->get();
+
+        // Group by target language
+        $groupedLists = $allLists->groupBy(function ($list) {
+            return Sidebar::languageName($list->target_language);
+        });
+
+        // Stats per language for activity sidebar
+        $languageStats = $allLists->groupBy('target_language')->map(fn ($lists) => [
+            'name' => Sidebar::languageName($lists->first()->target_language),
+            'count' => $lists->count(),
+        ])->values();
 
         $availableLanguages = VocabList::where('team_id', $team->id)
             ->selectRaw('DISTINCT target_language')
@@ -178,7 +190,8 @@ class Index extends Component
             ->values();
 
         return view('vocab::livewire.lists.index', [
-            'lists' => $lists,
+            'groupedLists' => $groupedLists,
+            'languageStats' => $languageStats,
             'availableLanguages' => $availableLanguages,
         ])->layout('platform::layouts.app');
     }

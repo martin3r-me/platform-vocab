@@ -313,8 +313,18 @@ class Show extends Component
     {
         $entries = $this->list->entries()->orderBy('sort_order')->get();
 
+        // Stats for activity sidebar
+        $totalEntries = $entries->count();
+        $withExamples = $entries->filter(fn ($e) => !empty($e->example_sentence))->count();
+        $withoutExamples = $totalEntries - $withExamples;
+        $wordTypeStats = $entries->groupBy('word_type')->map->count()->filter(fn ($v, $k) => $k !== '')->sortDesc();
+
         return view('vocab::livewire.lists.show', [
             'entries' => $entries,
+            'totalEntries' => $totalEntries,
+            'withExamples' => $withExamples,
+            'withoutExamples' => $withoutExamples,
+            'wordTypeStats' => $wordTypeStats,
         ])->layout('platform::layouts.app');
     }
 }
