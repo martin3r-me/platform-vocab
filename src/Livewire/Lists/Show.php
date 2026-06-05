@@ -45,6 +45,9 @@ class Show extends Component
     // TTS
     public ?int $ttsPlayingId = null;
 
+    // Generate Examples
+    public bool $generatingExamples = false;
+
     public function mount(string $uuid)
     {
         $this->uuid = $uuid;
@@ -155,6 +158,11 @@ class Show extends Component
                 return;
             }
 
+            $text = $entry->term;
+            if ($entry->example_sentence) {
+                $text .= ' ... ' . $entry->example_sentence;
+            }
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json',
@@ -162,11 +170,11 @@ class Show extends Component
                 ->timeout(15)
                 ->post('https://api.openai.com/v1/audio/speech', [
                     'model' => 'gpt-4o-mini-tts',
-                    'input' => $entry->term,
+                    'input' => $text,
                     'voice' => 'nova',
                     'response_format' => 'mp3',
                     'speed' => 0.9,
-                    'instructions' => 'Speak clearly and naturally. Pronounce the word as a native speaker would.',
+                    'instructions' => 'Speak clearly and naturally. First say the word, then pause briefly, then say the example sentence. Pronounce as a native speaker would.',
                 ]);
 
             if ($response->successful()) {
@@ -178,6 +186,65 @@ class Show extends Component
         }
 
         $this->ttsPlayingId = null;
+    }
+
+    public function generateExamples()
+    {
+        $this->generatingExamples = true;
+
+        try {
+            $entriesWithout = $this->list->entries()
+                ->whereNull('example_sentence')
+                ->orWhere('example_sentence', '')
+                ->get();
+
+            if ($entriesWithout->isEmpty()) {
+                $this->generatingExamples = false;
+                return;
+            }
+
+            $entriesData = $entriesWithout->map(fn ($e) => [
+                'id' => $e->id,
+                'term' => $e->term,
+                'translation' => $e->translation,
+                'word_type' => $e->word_type,
+            ])->toArray();
+
+            $prompt = \Platform\Vocab\Prompts\VocabPrompts::generateExamples(
+                $entriesData,
+                $this->list->source_language,
+                $this->list->target_language,
+                $this->list->level ?? 'B1'
+            );
+
+            $openAi = app(\Platform\Core\Services\OpenAiService::class);
+            $result = $openAi->chat(
+                [['role' => 'user', 'content' => $prompt]],
+                'gpt-4o-mini',
+                ['tools' => false, 'max_tokens' => 3000, 'temperature' => 0.6]
+            );
+
+            $content = $result['content'] ?? '';
+            $jsonMatch = [];
+            if (preg_match('/\[[\s\S]*\]/', $content, $jsonMatch)) {
+                $examples = json_decode($jsonMatch[0], true);
+            } else {
+                $examples = json_decode($content, true);
+            }
+
+            if (is_array($examples)) {
+                foreach ($examples as $item) {
+                    if (empty($item['id']) || empty($item['example_sentence'])) continue;
+                    VocabEntry::where('id', (int)$item['id'])
+                        ->where('vocab_list_id', $this->list->id)
+                        ->update(['example_sentence' => (string)$item['example_sentence']]);
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->addError('examples', 'Fehler: ' . $e->getMessage());
+        }
+
+        $this->generatingExamples = false;
     }
 
     public function generateMore()

@@ -40,6 +40,18 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
+                        @php $missingExamples = $entries->filter(fn($e) => empty($e->example_sentence))->count(); @endphp
+                        @if($missingExamples > 0)
+                        <button wire:click="generateExamples" wire:loading.attr="disabled" wire:target="generateExamples" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/15 transition-all" title="{{ $missingExamples }} Einträge ohne Beispielsatz">
+                            <span wire:loading wire:target="generateExamples">
+                                <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            </span>
+                            <span wire:loading.remove wire:target="generateExamples">
+                                @svg('heroicon-o-chat-bubble-bottom-center-text', 'w-3.5 h-3.5')
+                            </span>
+                            {{ $missingExamples }}x Beispiele
+                        </button>
+                        @endif
                         <button wire:click="$set('showGenerateModal', true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-lg hover:bg-white/80 transition-all">
                             @svg('heroicon-o-sparkles', 'w-3.5 h-3.5')
                             KI-Generieren
@@ -106,9 +118,7 @@
                             <tr class="border-b border-black/5 dark:border-white/5">
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">{{ strtoupper($list->target_language) }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">{{ strtoupper($list->source_language) }}</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400 w-16">Genus</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Wortart</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Beispiel</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400 w-16">Typ</th>
                                 <th class="px-4 py-3 w-20"></th>
                             </tr>
                         </thead>
@@ -117,32 +127,30 @@
                             <tr class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group">
                                 @if($editingEntryId === $entry->id)
                                     {{-- Edit Mode --}}
-                                    <td class="px-4 py-2">
-                                        <input type="text" wire:model="editTerm" class="w-full px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" />
+                                    <td class="px-4 py-2" colspan="2">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <input type="text" wire:model="editTerm" class="w-full px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" placeholder="Term..." />
+                                            <input type="text" wire:model="editTranslation" class="w-full px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" placeholder="Übersetzung..." />
+                                        </div>
+                                        <input type="text" wire:model="editExampleSentence" class="w-full mt-1.5 px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" placeholder="Beispielsatz..." />
                                     </td>
                                     <td class="px-4 py-2">
-                                        <input type="text" wire:model="editTranslation" class="w-full px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" />
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <select wire:model="editGender" class="w-full px-1 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20">
-                                            <option value="">-</option>
-                                            <option value="m">m</option>
-                                            <option value="f">f</option>
-                                            <option value="n">n</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <select wire:model="editWordType" class="w-full px-1 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20">
-                                            <option value="">-</option>
-                                            <option value="noun">Nomen</option>
-                                            <option value="verb">Verb</option>
-                                            <option value="adjective">Adjektiv</option>
-                                            <option value="adverb">Adverb</option>
-                                            <option value="phrase">Phrase</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <input type="text" wire:model="editExampleSentence" class="w-full px-2 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20" placeholder="Beispielsatz..." />
+                                        <div class="space-y-1.5">
+                                            <select wire:model="editWordType" class="w-full px-1 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20">
+                                                <option value="">-</option>
+                                                <option value="noun">Nomen</option>
+                                                <option value="verb">Verb</option>
+                                                <option value="adjective">Adj.</option>
+                                                <option value="adverb">Adv.</option>
+                                                <option value="phrase">Phrase</option>
+                                            </select>
+                                            <select wire:model="editGender" class="w-full px-1 py-1 text-sm bg-black/[0.03] dark:bg-white/5 rounded border-0 focus:ring-2 focus:ring-violet-500/20">
+                                                <option value="">-</option>
+                                                <option value="m">m</option>
+                                                <option value="f">f</option>
+                                                <option value="n">n</option>
+                                            </select>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-2">
                                         <div class="flex gap-1">
@@ -157,8 +165,8 @@
                                 @else
                                     {{-- View Mode --}}
                                     <td class="px-4 py-3">
-                                        <div class="flex items-center gap-1.5">
-                                            <button wire:click="playTts({{ $entry->id }})" wire:loading.attr="disabled" wire:target="playTts({{ $entry->id }})" class="flex-shrink-0 p-1 rounded-md text-gray-300 hover:text-violet-500 hover:bg-violet-500/10 transition-colors" title="Aussprache anhören">
+                                        <div class="flex items-start gap-1.5">
+                                            <button wire:click="playTts({{ $entry->id }})" wire:loading.attr="disabled" wire:target="playTts({{ $entry->id }})" class="flex-shrink-0 p-1 mt-0.5 rounded-md text-gray-300 hover:text-violet-500 hover:bg-violet-500/10 transition-colors" title="Aussprache anhören">
                                                 <span wire:loading wire:target="playTts({{ $entry->id }})">
                                                     <svg class="animate-spin w-3.5 h-3.5 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                                 </span>
@@ -166,25 +174,29 @@
                                                     @svg('heroicon-o-speaker-wave', 'w-3.5 h-3.5')
                                                 </span>
                                             </button>
-                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $entry->term }}</span>
-                                            @if($entry->plural)
-                                            <span class="text-xs text-gray-400">(Pl: {{ $entry->plural }})</span>
-                                            @endif
+                                            <div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $entry->term }}</span>
+                                                    @if($entry->gender)
+                                                    <span class="inline-flex items-center px-1 py-0.5 text-[10px] font-medium rounded
+                                                        {{ $entry->gender === 'm' ? 'text-blue-600 bg-blue-500/10' : '' }}
+                                                        {{ $entry->gender === 'f' ? 'text-pink-600 bg-pink-500/10' : '' }}
+                                                        {{ $entry->gender === 'n' ? 'text-gray-600 bg-gray-500/10' : '' }}
+                                                    ">{{ $entry->gender }}</span>
+                                                    @endif
+                                                    @if($entry->plural)
+                                                    <span class="text-[10px] text-gray-400">(Pl: {{ $entry->plural }})</span>
+                                                    @endif
+                                                </div>
+                                                @if($entry->example_sentence)
+                                                <div class="text-xs text-gray-400 mt-0.5 italic">{{ $entry->example_sentence }}</div>
+                                                @endif
+                                            </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{{ $entry->translation }}</td>
-                                    <td class="px-4 py-3">
-                                        @if($entry->gender)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded
-                                            {{ $entry->gender === 'm' ? 'text-blue-600 bg-blue-500/10' : '' }}
-                                            {{ $entry->gender === 'f' ? 'text-pink-600 bg-pink-500/10' : '' }}
-                                            {{ $entry->gender === 'n' ? 'text-gray-600 bg-gray-500/10' : '' }}
-                                        ">{{ $entry->gender }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-3 text-xs text-gray-400">{{ $entry->word_type }}</td>
-                                    <td class="px-4 py-3 text-xs text-gray-400 truncate max-w-xs" title="{{ $entry->example_sentence }}">{{ $entry->example_sentence }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 align-top">{{ $entry->translation }}</td>
+                                    <td class="px-4 py-3 text-xs text-gray-400 align-top">{{ $entry->word_type }}</td>
+                                    <td class="px-4 py-3 align-top">
                                         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button wire:click="startEditing({{ $entry->id }})" class="p-1 rounded text-gray-400 hover:text-violet-500 hover:bg-violet-500/10 transition-colors">
                                                 @svg('heroicon-o-pencil', 'w-3.5 h-3.5')

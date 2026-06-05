@@ -101,6 +101,31 @@ Wähle {$count} verschiedene Einträge. Die falschen Optionen sollen aus derselb
 PROMPT;
     }
 
+    public static function generateExamples(array $entries, string $sourceLang, string $targetLang, string $level): string
+    {
+        $entriesJson = json_encode($entries, JSON_UNESCAPED_UNICODE);
+
+        return <<<PROMPT
+Du bist ein Sprachlehrer. Erstelle für jede der folgenden Vokabeln einen natürlichen, kurzen Beispielsatz in der Zielsprache ({$targetLang}).
+
+Niveau: {$level}
+Zielsprache: {$targetLang}
+Ausgangssprache: {$sourceLang}
+
+Vokabeln (JSON):
+{$entriesJson}
+
+Regeln:
+- Beispielsätze sollen kurz sein (5-12 Wörter)
+- Alltagsnah und praxisrelevant
+- Passe die Komplexität an das Niveau ({$level}) an
+- Der Beispielsatz muss das Wort (term) enthalten
+- Antworte NUR mit einem JSON-Array, jedes Element: {"id": <id>, "example_sentence": "<Satz>"}
+
+JSON:
+PROMPT;
+    }
+
     public static function checkAnswer(string $term, string $correctAnswer, string $userAnswer, string $mode): string
     {
         return <<<PROMPT
