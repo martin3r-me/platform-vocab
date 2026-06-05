@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Platform\Vocab\Models\VocabList;
 use Platform\Vocab\Models\VocabEntry;
+use Platform\Vocab\Models\VocabListEnrollment;
 
 class Show extends Component
 {
@@ -53,6 +54,21 @@ class Show extends Component
         $this->uuid = $uuid;
         $team = Auth::user()->currentTeam;
         $this->list = VocabList::where('team_id', $team->id)->where('uuid', $uuid)->firstOrFail();
+    }
+
+    public function enroll(): void
+    {
+        VocabListEnrollment::firstOrCreate(
+            ['user_id' => Auth::id(), 'vocab_list_id' => $this->list->id],
+            ['enrolled_at' => now()]
+        );
+    }
+
+    public function unenroll(): void
+    {
+        VocabListEnrollment::where('user_id', Auth::id())
+            ->where('vocab_list_id', $this->list->id)
+            ->delete();
     }
 
     public function addEntry()
@@ -319,12 +335,18 @@ class Show extends Component
         $withoutExamples = $totalEntries - $withExamples;
         $wordTypeStats = $entries->groupBy('word_type')->map->count()->filter(fn ($v, $k) => $k !== '')->sortDesc();
 
+        $userId = Auth::id();
+        $enrollment = $this->list->enrollmentFor($userId);
+        $mastery = $this->list->masteryFor($userId);
+
         return view('vocab::livewire.lists.show', [
             'entries' => $entries,
             'totalEntries' => $totalEntries,
             'withExamples' => $withExamples,
             'withoutExamples' => $withoutExamples,
             'wordTypeStats' => $wordTypeStats,
+            'enrollment' => $enrollment,
+            'mastery' => $mastery,
         ])->layout('platform::layouts.app');
     }
 }

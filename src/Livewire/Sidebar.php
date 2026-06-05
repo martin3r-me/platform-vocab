@@ -3,7 +3,10 @@
 namespace Platform\Vocab\Livewire;
 
 use Livewire\Component;
+use Platform\Vocab\Models\VocabEntry;
+use Platform\Vocab\Models\VocabEntryProgress;
 use Platform\Vocab\Models\VocabList;
+use Platform\Vocab\Models\VocabListEnrollment;
 
 class Sidebar extends Component
 {
@@ -46,10 +49,16 @@ class Sidebar extends Component
         if (!$user) {
             return view('vocab::livewire.sidebar', [
                 'groupedLists' => collect(),
+                'enrolledLists' => collect(),
+                'dueCount' => 0,
             ]);
         }
 
-        $recentLists = VocabList::where('team_id', $user->currentTeam->id)
+        $teamId = $user->currentTeam->id;
+
+        $dueCount = $this->dueCardCount($user->id);
+
+        $recentLists = VocabList::where('team_id', $teamId)
             ->withCount('entries')
             ->orderBy('updated_at', 'desc')
             ->limit(10)
@@ -59,8 +68,51 @@ class Sidebar extends Component
             return strtoupper($list->source_language) . ' → ' . strtoupper($list->target_language);
         });
 
+        $enrolledLists = VocabList::query()
+            ->where('team_id', $teamId)
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->withCount('entries')
+            ->limit(8)
+            ->get()
+            ->map(function (VocabList $list) use ($user) {
+                $list->setAttribute('mastery_pct', $list->masteryFor($user->id)['pct']);
+                return $list;
+            });
+
         return view('vocab::livewire.sidebar', [
             'groupedLists' => $groupedLists,
+            'enrolledLists' => $enrolledLists,
+            'dueCount' => $dueCount,
         ]);
+    }
+
+    protected function dueCardCount(int $userId): int
+    {
+        $enrolledListIds = VocabListEnrollment::where('user_id', $userId)->pluck('vocab_list_id');
+        if ($enrolledListIds->isEmpty()) {
+            return 0;
+        }
+
+        $entryIds = VocabEntry::whereIn('vocab_list_id', $enrolledListIds)->pluck('id');
+        if ($entryIds->isEmpty()) {
+            return 0;
+        }
+
+        $dueProgress = VocabEntryProgress::query()
+            ->where('user_id', $userId)
+            ->whereIn('vocab_entry_id', $entryIds)
+            ->where(function ($q) {
+                $q->whereNull('due_at')->orWhere('due_at', '<=', now());
+            })
+            ->count();
+
+        $progressedIds = VocabEntryProgress::query()
+            ->where('user_id', $userId)
+            ->whereIn('vocab_entry_id', $entryIds)
+            ->pluck('vocab_entry_id');
+
+        $newCount = $entryIds->diff($progressedIds)->count();
+
+        return $dueProgress + min($newCount, 10);
     }
 }

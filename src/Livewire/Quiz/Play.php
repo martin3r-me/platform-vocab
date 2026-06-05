@@ -6,6 +6,8 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Platform\Vocab\Models\VocabList;
 use Platform\Vocab\Models\VocabEntry;
+use Platform\Vocab\Models\VocabEntryProgress;
+use Platform\Vocab\Models\VocabListEnrollment;
 use Platform\Vocab\Prompts\VocabPrompts;
 
 class Play extends Component
@@ -84,9 +86,19 @@ class Play extends Component
             $this->currentIndex = 0;
             $this->results = [];
             $this->quizFinished = false;
+
+            $this->ensureEnrollment();
         } catch (\Throwable $e) {
             $this->addError('quiz', 'Fehler: ' . $e->getMessage());
         }
+    }
+
+    protected function ensureEnrollment(): VocabListEnrollment
+    {
+        return VocabListEnrollment::firstOrCreate(
+            ['user_id' => Auth::id(), 'vocab_list_id' => $this->list->id],
+            ['enrolled_at' => now()]
+        );
     }
 
     public function selectOption(int $index)
@@ -142,12 +154,18 @@ class Play extends Component
                 ];
             }
 
+            $isCorrect = (bool)($this->feedback['correct'] ?? false);
+
             $this->results[] = [
                 'question' => $question['question'] ?? '',
                 'user_answer' => $this->userAnswer,
-                'correct' => (bool)($this->feedback['correct'] ?? false),
+                'correct' => $isCorrect,
                 'expected' => $this->feedback['expected'] ?? '',
             ];
+
+            if ($entryId) {
+                VocabEntryProgress::recordAnswer(Auth::id(), $entryId, $isCorrect);
+            }
         } catch (\Throwable $e) {
             $this->feedback = [
                 'correct' => false,
@@ -172,7 +190,15 @@ class Play extends Component
 
         if ($this->currentIndex >= count($this->questions)) {
             $this->quizFinished = true;
+            $this->touchEnrollmentStudied();
         }
+    }
+
+    protected function touchEnrollmentStudied(): void
+    {
+        VocabListEnrollment::where('user_id', Auth::id())
+            ->where('vocab_list_id', $this->list->id)
+            ->update(['last_studied_at' => now()]);
     }
 
     public function restartQuiz()

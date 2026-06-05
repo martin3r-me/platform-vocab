@@ -149,10 +149,12 @@ class Index extends Component
 
     public function render()
     {
-        $team = Auth::user()->currentTeam;
+        $user = Auth::user();
+        $team = $user->currentTeam;
 
         $query = VocabList::where('team_id', $team->id)
-            ->withCount('entries');
+            ->withCount('entries')
+            ->withCount(['enrollments as is_enrolled' => fn ($q) => $q->where('user_id', $user->id)]);
 
         if ($this->search) {
             $search = $this->search;
@@ -171,6 +173,14 @@ class Index extends Component
         }
 
         $allLists = $query->orderBy('updated_at', 'desc')->get();
+
+        // Attach mastery for the current user (only for enrolled lists, others get 0)
+        $allLists->each(function (VocabList $list) use ($user) {
+            $list->setAttribute(
+                'mastery_pct',
+                $list->is_enrolled ? $list->masteryFor($user->id)['pct'] : null
+            );
+        });
 
         // Group by target language
         $groupedLists = $allLists->groupBy(function ($list) {

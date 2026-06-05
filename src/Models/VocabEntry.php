@@ -4,6 +4,8 @@ namespace Platform\Vocab\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Symfony\Component\Uid\UuidV7;
 
 class VocabEntry extends Model
@@ -40,5 +42,16 @@ class VocabEntry extends Model
     public function vocabList(): BelongsTo
     {
         return $this->belongsTo(VocabList::class, 'vocab_list_id');
+    }
+
+    public function progress(): HasMany
+    {
+        return $this->hasMany(VocabEntryProgress::class, 'vocab_entry_id');
+    }
+
+    public function progressFor(int $userId): HasOne
+    {
+        return $this->hasOne(VocabEntryProgress::class, 'vocab_entry_id')
+            ->where('user_id', $userId);
     }
 }

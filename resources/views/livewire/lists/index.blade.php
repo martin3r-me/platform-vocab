@@ -94,10 +94,21 @@
                                                         <x-ui-badge variant="success" size="sm">{{ $list->level }}</x-ui-badge>
                                                     @endif
                                                 </div>
+                                                @if($list->is_enrolled)
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        @svg('heroicon-s-bookmark', 'w-3 h-3')
+                                                        {{ $list->mastery_pct }}%
+                                                    </span>
+                                                @endif
                                             </div>
                                             <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 truncate">{{ $list->name }}</h3>
                                             @if($list->description)
                                             <p class="text-xs text-gray-400 mb-3 line-clamp-2">{{ $list->description }}</p>
+                                            @endif
+                                            @if($list->is_enrolled && $list->entries_count > 0)
+                                                <div class="mt-3 h-1 rounded-full bg-black/[0.06] dark:bg-white/10 overflow-hidden">
+                                                    <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all" style="width: {{ $list->mastery_pct }}%"></div>
+                                                </div>
                                             @endif
                                             <div class="flex items-center justify-between mt-3 pt-3 border-t border-black/5 dark:border-white/5">
                                                 <span class="text-xs text-gray-400">{{ $list->entries_count }} Vokabeln</span>

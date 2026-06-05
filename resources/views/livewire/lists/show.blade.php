@@ -60,6 +60,17 @@
                             @svg('heroicon-o-sparkles', 'w-3.5 h-3.5')
                             KI-Generieren
                         </x-ui-button>
+                        @if($enrollment)
+                            <x-ui-button variant="secondary-outline" size="sm" wire:click="unenroll" wire:confirm="Lerne diese Liste nicht mehr aktiv?">
+                                @svg('heroicon-o-check-circle', 'w-3.5 h-3.5 text-emerald-500')
+                                Aktiv
+                            </x-ui-button>
+                        @else
+                            <x-ui-button variant="primary-outline" size="sm" wire:click="enroll">
+                                @svg('heroicon-o-bookmark', 'w-3.5 h-3.5')
+                                Lernen
+                            </x-ui-button>
+                        @endif
                         <x-ui-button variant="success" size="sm" :href="route('vocab.quiz.play', ['uuid' => $list->uuid])">
                             @svg('heroicon-o-academic-cap', 'w-3.5 h-3.5')
                             Quiz
@@ -69,6 +80,26 @@
                         </button>
                     </div>
                 </div>
+
+                @if($enrollment && $mastery['total'] > 0)
+                    <div class="mt-5 pt-4 border-t border-black/5 dark:border-white/10">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="font-medium text-gray-700 dark:text-gray-300">Lernfortschritt</span>
+                                <span class="text-gray-400">·</span>
+                                <span class="text-gray-500 dark:text-gray-400">{{ $mastery['mastered'] }} von {{ $mastery['total'] }} sitzen</span>
+                                @if($enrollment->last_studied_at)
+                                    <span class="text-gray-400">·</span>
+                                    <span class="text-gray-400">zuletzt {{ $enrollment->last_studied_at->diffForHumans() }}</span>
+                                @endif
+                            </div>
+                            <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ $mastery['pct'] }}%</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-black/[0.06] dark:bg-white/10 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all" style="width: {{ $mastery['pct'] }}%"></div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Add Entry Inline --}}
