@@ -108,6 +108,15 @@ class VocabServiceProvider extends ServiceProvider
 
             // Text-to-Speech
             $registry->register(new \Platform\Vocab\Tools\TextToSpeechTool());
+
+            // Vocab Catalogs CRUD + Pivot
+            $registry->register(new \Platform\Vocab\Tools\ListVocabCatalogsTool());
+            $registry->register(new \Platform\Vocab\Tools\GetVocabCatalogTool());
+            $registry->register(new \Platform\Vocab\Tools\CreateVocabCatalogTool());
+            $registry->register(new \Platform\Vocab\Tools\UpdateVocabCatalogTool());
+            $registry->register(new \Platform\Vocab\Tools\DeleteVocabCatalogTool());
+            $registry->register(new \Platform\Vocab\Tools\AttachListsToVocabCatalogTool());
+            $registry->register(new \Platform\Vocab\Tools\DetachListFromVocabCatalogTool());
         } catch (\Throwable $e) {
             // ToolRegistry not available yet (e.g. during migrations)
         }
