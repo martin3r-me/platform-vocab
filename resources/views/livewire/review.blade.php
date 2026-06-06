@@ -1,4 +1,26 @@
-<div>
+<div
+    x-data="{ audio: null }"
+    @play-tts.window="
+        try { if (audio) { audio.pause(); audio.currentTime = 0; } } catch(e) {}
+        audio = new Audio($event.detail.audio);
+        audio.play().catch(() => {});
+    "
+    @if($keyboardShortcuts && !$finished && $total > 0)
+    @keydown.window="
+        const tag = ($event.target?.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        if ($event.metaKey || $event.ctrlKey || $event.altKey) return;
+        @if(!$showAnswer)
+            if ($event.code === 'Space' || $event.code === 'Enter') { $event.preventDefault(); $wire.reveal(); }
+        @else
+            if ($event.key === '1') { $event.preventDefault(); $wire.rate(1); }
+            else if ($event.key === '2') { $event.preventDefault(); $wire.rate(3); }
+            else if ($event.key === '3') { $event.preventDefault(); $wire.rate(4); }
+            else if ($event.key === '4') { $event.preventDefault(); $wire.rate(5); }
+        @endif
+    "
+    @endif
+>
     <x-ui-page>
         <x-slot name="navbar">
             <x-ui-page-navbar title="" />
@@ -8,7 +30,17 @@
             <x-ui-page-actionbar :breadcrumbs="[
                 ['label' => 'Vokabeln', 'href' => route('vocab.dashboard'), 'icon' => 'language'],
                 ['label' => 'Wiederholen'],
-            ]" />
+            ]">
+                @if(!$finished && $total > 0)
+                    <button wire:click="toggleMute" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg text-[var(--ui-muted)] hover:text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)] transition-colors" title="Audio {{ $muteAudio ? 'aktivieren' : 'stummschalten' }}">
+                        @if($muteAudio)
+                            @svg('heroicon-o-speaker-x-mark', 'w-4 h-4')
+                        @else
+                            @svg('heroicon-o-speaker-wave', 'w-4 h-4')
+                        @endif
+                    </button>
+                @endif
+            </x-ui-page-actionbar>
         </x-slot>
 
         <x-ui-page-container>
@@ -114,23 +146,38 @@
                         <div class="border-t border-black/5 dark:border-white/10 p-4 bg-black/[0.02] dark:bg-white/[0.02]">
                             @if(!$showAnswer)
                                 <x-ui-button variant="primary" size="lg" wire:click="reveal" class="w-full justify-center">
-                                    Lösung zeigen
+                                    <span>Lösung zeigen</span>
+                                    @if($keyboardShortcuts)
+                                        <kbd class="ml-2 px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/20 text-white/80">Space</kbd>
+                                    @endif
                                 </x-ui-button>
                             @else
                                 <div class="grid grid-cols-4 gap-2">
-                                    <button wire:click="rate(1)" class="flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-700 dark:text-rose-300 transition-colors">
+                                    <button wire:click="rate(1)" class="relative flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-700 dark:text-rose-300 transition-colors">
+                                        @if($keyboardShortcuts)
+                                            <kbd class="absolute top-1 right-1 px-1 text-[9px] font-mono rounded bg-rose-500/20 text-rose-600">1</kbd>
+                                        @endif
                                         <span class="text-xs font-medium">Wieder</span>
                                         <span class="text-[10px] text-[var(--ui-muted)]">&lt; 1 Tag</span>
                                     </button>
-                                    <button wire:click="rate(3)" class="flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-700 dark:text-amber-300 transition-colors">
+                                    <button wire:click="rate(3)" class="relative flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-700 dark:text-amber-300 transition-colors">
+                                        @if($keyboardShortcuts)
+                                            <kbd class="absolute top-1 right-1 px-1 text-[9px] font-mono rounded bg-amber-500/20 text-amber-600">2</kbd>
+                                        @endif
                                         <span class="text-xs font-medium">Schwer</span>
                                         <span class="text-[10px] text-[var(--ui-muted)]">kurzer Abstand</span>
                                     </button>
-                                    <button wire:click="rate(4)" class="flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors">
+                                    <button wire:click="rate(4)" class="relative flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors">
+                                        @if($keyboardShortcuts)
+                                            <kbd class="absolute top-1 right-1 px-1 text-[9px] font-mono rounded bg-emerald-500/20 text-emerald-600">3</kbd>
+                                        @endif
                                         <span class="text-xs font-medium">Gut</span>
                                         <span class="text-[10px] text-[var(--ui-muted)]">Standard</span>
                                     </button>
-                                    <button wire:click="rate(5)" class="flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 transition-colors">
+                                    <button wire:click="rate(5)" class="relative flex flex-col items-center gap-1 px-2 py-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-700 dark:text-sky-300 transition-colors">
+                                        @if($keyboardShortcuts)
+                                            <kbd class="absolute top-1 right-1 px-1 text-[9px] font-mono rounded bg-sky-500/20 text-sky-600">4</kbd>
+                                        @endif
                                         <span class="text-xs font-medium">Einfach</span>
                                         <span class="text-[10px] text-[var(--ui-muted)]">lang aufschieben</span>
                                     </button>
@@ -139,11 +186,17 @@
                         </div>
                     </div>
 
-                    <div class="text-center text-xs text-[var(--ui-muted)]">
+                    <div class="text-center text-xs text-[var(--ui-muted)] flex items-center justify-center gap-3">
                         <span class="inline-flex items-center gap-1">
                             @svg('heroicon-o-information-circle', 'w-3.5 h-3.5')
                             Erst überlegen, dann Lösung zeigen
                         </span>
+                        @if($showAnswer && !$muteAudio)
+                            <button wire:click="playCurrentTts" class="inline-flex items-center gap-1 hover:text-[var(--ui-secondary)] transition-colors">
+                                @svg('heroicon-o-speaker-wave', 'w-3.5 h-3.5')
+                                Erneut anhören
+                            </button>
+                        @endif
                     </div>
                 @endif
 

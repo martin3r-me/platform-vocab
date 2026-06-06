@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Platform\Vocab\Models\VocabEntry;
 use Platform\Vocab\Models\VocabEntryProgress;
 use Platform\Vocab\Models\VocabListEnrollment;
+use Platform\Vocab\Models\VocabUserSettings;
 use Platform\Vocab\Services\SrsAlgorithm;
+use Platform\Vocab\Services\TtsService;
 
 class Review extends Component
 {
@@ -21,9 +23,24 @@ class Review extends Component
 
     public array $results = [];
 
+    public bool $autoPlayTts = true;
+    public bool $keyboardShortcuts = true;
+    public bool $muteAudio = false;
+
     public function mount(): void
     {
+        $user = Auth::user();
+        if ($user) {
+            $settings = VocabUserSettings::forUser($user->id, $user->currentTeam?->id);
+            $this->autoPlayTts = $settings->auto_play_tts;
+            $this->keyboardShortcuts = $settings->keyboard_shortcuts;
+        }
         $this->loadQueue();
+    }
+
+    public function toggleMute(): void
+    {
+        $this->muteAudio = !$this->muteAudio;
     }
 
     protected function loadQueue(): void
@@ -101,6 +118,27 @@ class Review extends Component
     public function reveal(): void
     {
         $this->showAnswer = true;
+
+        if ($this->autoPlayTts && !$this->muteAudio) {
+            $this->playCurrentTts();
+        }
+    }
+
+    public function playCurrentTts(): void
+    {
+        $card = $this->queue[$this->currentIndex] ?? null;
+        if (!$card) {
+            return;
+        }
+
+        $audio = app(TtsService::class)->synthesizeTermAndExample(
+            $card['term'],
+            $card['example_sentence'] ?? null
+        );
+
+        if ($audio) {
+            $this->dispatch('play-tts', audio: $audio);
+        }
     }
 
     public function rate(int $quality): void

@@ -4,10 +4,10 @@ namespace Platform\Vocab\Livewire\Lists;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Platform\Vocab\Models\VocabList;
 use Platform\Vocab\Models\VocabEntry;
 use Platform\Vocab\Models\VocabListEnrollment;
+use Platform\Vocab\Services\TtsService;
 
 class Show extends Component
 {
@@ -164,41 +164,10 @@ class Show extends Component
         $entry = VocabEntry::where('vocab_list_id', $this->list->id)->findOrFail($entryId);
         $this->ttsPlayingId = $entryId;
 
-        try {
-            $apiKey = config('services.openai.api_key')
-                ?: config('services.openai.key')
-                ?: env('OPENAI_API_KEY');
+        $audio = app(TtsService::class)->synthesizeTermAndExample($entry->term, $entry->example_sentence);
 
-            if (!$apiKey) {
-                $this->ttsPlayingId = null;
-                return;
-            }
-
-            $text = $entry->term;
-            if ($entry->example_sentence) {
-                $text .= ' ... ' . $entry->example_sentence;
-            }
-
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])
-                ->timeout(15)
-                ->post('https://api.openai.com/v1/audio/speech', [
-                    'model' => 'gpt-4o-mini-tts',
-                    'input' => $text,
-                    'voice' => 'nova',
-                    'response_format' => 'mp3',
-                    'speed' => 0.9,
-                    'instructions' => 'Speak clearly and naturally. First say the word, then pause briefly, then say the example sentence. Pronounce as a native speaker would.',
-                ]);
-
-            if ($response->successful()) {
-                $base64 = base64_encode($response->body());
-                $this->dispatch('play-tts', audio: "data:audio/mpeg;base64,{$base64}");
-            }
-        } catch (\Throwable $e) {
-            // Silently fail - TTS is a nice-to-have
+        if ($audio) {
+            $this->dispatch('play-tts', audio: $audio);
         }
 
         $this->ttsPlayingId = null;
