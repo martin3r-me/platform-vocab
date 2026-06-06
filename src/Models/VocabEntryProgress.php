@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Platform\Vocab\Services\SrsAlgorithm;
+use Platform\Vocab\Services\VocabAchievementService;
 use Symfony\Component\Uid\UuidV7;
 
 class VocabEntryProgress extends Model
@@ -94,7 +95,17 @@ class VocabEntryProgress extends Model
             $progress->save();
         }
 
-        return SrsAlgorithm::apply($progress, $quality);
+        SrsAlgorithm::apply($progress, $quality);
+
+        try {
+            $newlyAwarded = app(VocabAchievementService::class)->evaluate($userId);
+        } catch (\Throwable $e) {
+            $newlyAwarded = [];
+        }
+
+        $progress->setAttribute('newly_awarded', $newlyAwarded);
+
+        return $progress;
     }
 
     public static function recordAnswer(int $userId, int $entryId, bool $correct): self

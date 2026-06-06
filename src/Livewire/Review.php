@@ -8,6 +8,7 @@ use Platform\Vocab\Models\VocabEntry;
 use Platform\Vocab\Models\VocabEntryProgress;
 use Platform\Vocab\Models\VocabListEnrollment;
 use Platform\Vocab\Models\VocabUserSettings;
+use Platform\Vocab\Services\AchievementCatalog;
 use Platform\Vocab\Services\SrsAlgorithm;
 use Platform\Vocab\Services\TtsService;
 
@@ -26,6 +27,7 @@ class Review extends Component
     public bool $autoPlayTts = true;
     public bool $keyboardShortcuts = true;
     public bool $muteAudio = false;
+    public bool $listeningFirst = false;
 
     public function mount(): void
     {
@@ -34,13 +36,26 @@ class Review extends Component
             $settings = VocabUserSettings::forUser($user->id, $user->currentTeam?->id);
             $this->autoPlayTts = $settings->auto_play_tts;
             $this->keyboardShortcuts = $settings->keyboard_shortcuts;
+            $this->listeningFirst = $settings->listening_first_default;
         }
         $this->loadQueue();
+
+        if ($this->listeningFirst && !$this->muteAudio && !empty($this->queue)) {
+            $this->playCurrentTts();
+        }
     }
 
     public function toggleMute(): void
     {
         $this->muteAudio = !$this->muteAudio;
+    }
+
+    public function toggleListeningFirst(): void
+    {
+        $this->listeningFirst = !$this->listeningFirst;
+        if ($this->listeningFirst && !$this->muteAudio && !$this->showAnswer) {
+            $this->playCurrentTts();
+        }
     }
 
     protected function loadQueue(): void
@@ -152,7 +167,7 @@ class Review extends Component
             return;
         }
 
-        VocabEntryProgress::recordReview(Auth::id(), $card['entry_id'], $quality);
+        $progress = VocabEntryProgress::recordReview(Auth::id(), $card['entry_id'], $quality);
 
         $this->results[] = [
             'entry_id' => $card['entry_id'],
@@ -160,12 +175,26 @@ class Review extends Component
             'quality' => $quality,
         ];
 
+        foreach ($progress->getAttribute('newly_awarded') ?? [] as $code) {
+            $def = AchievementCatalog::get($code);
+            if (!$def) continue;
+            $this->dispatch('achievement-earned',
+                code: $code,
+                name: $def['name'],
+                description: $def['description'],
+                icon: $def['icon'],
+                tier: $def['tier'],
+            );
+        }
+
         $this->currentIndex++;
         $this->showAnswer = false;
 
         if ($this->currentIndex >= count($this->queue)) {
             $this->finished = true;
             $this->touchStudiedEnrollments();
+        } elseif ($this->listeningFirst && !$this->muteAudio) {
+            $this->playCurrentTts();
         }
     }
 

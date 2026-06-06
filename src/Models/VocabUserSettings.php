@@ -15,12 +15,14 @@ class VocabUserSettings extends Model
         'daily_goal',
         'auto_play_tts',
         'keyboard_shortcuts',
+        'listening_first_default',
     ];
 
     protected $casts = [
         'daily_goal' => 'integer',
         'auto_play_tts' => 'boolean',
         'keyboard_shortcuts' => 'boolean',
+        'listening_first_default' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -37,7 +39,12 @@ class VocabUserSettings extends Model
     {
         return self::firstOrCreate(
             ['user_id' => $userId, 'team_id' => $teamId],
-            ['daily_goal' => 10, 'auto_play_tts' => true, 'keyboard_shortcuts' => true]
+            [
+                'daily_goal' => 10,
+                'auto_play_tts' => true,
+                'keyboard_shortcuts' => true,
+                'listening_first_default' => false,
+            ]
         );
     }
 }

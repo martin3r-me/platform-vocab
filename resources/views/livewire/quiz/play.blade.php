@@ -1,4 +1,5 @@
 <div>
+    @include('vocab::livewire.partials.achievement-toast')
     <x-ui-page>
         <x-slot name="navbar">
             <x-ui-page-navbar title="" />

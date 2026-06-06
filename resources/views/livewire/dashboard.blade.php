@@ -164,6 +164,41 @@
                 </div>
             </div>
 
+            {{-- Achievements --}}
+            <div class="relative overflow-hidden rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-sm shadow-black/5 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Achievements</h3>
+                    <span class="text-xs text-gray-400">{{ $achievements['earned_count'] }} / {{ $achievements['total_count'] }} freigeschaltet</span>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    @foreach($achievements['items'] as $a)
+                        @php
+                            $tierBg = match($a['tier']) {
+                                'gold' => 'bg-yellow-500/15 text-yellow-600',
+                                'silver' => 'bg-slate-400/15 text-slate-500',
+                                default => 'bg-amber-500/15 text-amber-600',
+                            };
+                            $tierLabel = match($a['tier']) {
+                                'gold' => 'Gold',
+                                'silver' => 'Silver',
+                                default => 'Bronze',
+                            };
+                        @endphp
+                        <div class="group relative p-3 rounded-xl border border-black/5 dark:border-white/10 text-center transition-all {{ $a['earned'] ? 'bg-white/60 dark:bg-white/5' : 'bg-black/[0.02] dark:bg-white/[0.02] opacity-40 saturate-50 hover:opacity-70 hover:saturate-100' }}"
+                            title="{{ $a['description'] }}{{ $a['earned'] && $a['awarded_at'] ? ' — ' . $a['awarded_at']->format('d.m.Y') : '' }}">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-xl mx-auto mb-2 {{ $tierBg }}">
+                                @svg('heroicon-o-' . $a['icon'], 'w-5 h-5')
+                            </div>
+                            <div class="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate">{{ $a['name'] }}</div>
+                            <div class="text-[9px] uppercase tracking-wider text-gray-400 mt-0.5">{{ $tierLabel }}</div>
+                            @if($a['earned'])
+                                <div class="absolute top-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900"></div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
             {{-- Enrolled lists --}}
             @if($enrolledLists->isNotEmpty())
                 <div class="relative overflow-hidden rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-sm shadow-black/5 p-5">
@@ -280,6 +315,14 @@
                         <div class="flex-1">
                             <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Tastatur-Shortcuts</div>
                             <div class="text-[11px] text-gray-400 mt-0.5">Space = aufdecken, 1/2/3/4 = Wieder/Schwer/Gut/Einfach.</div>
+                        </div>
+                    </label>
+
+                    <label class="flex items-start gap-3 p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03] cursor-pointer">
+                        <input type="checkbox" wire:model="settingsListeningFirstDefault" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-500 focus:ring-violet-500/20" />
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Hör-Modus als Standard</div>
+                            <div class="text-[11px] text-gray-400 mt-0.5">Review startet mit Audio — du hörst zuerst, der Text ist verdeckt. Trainiert Hörverstehen + Aussprache.</div>
                         </div>
                     </label>
 

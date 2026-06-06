@@ -9,6 +9,7 @@ use Platform\Vocab\Models\VocabEntry;
 use Platform\Vocab\Models\VocabEntryProgress;
 use Platform\Vocab\Models\VocabListEnrollment;
 use Platform\Vocab\Prompts\VocabPrompts;
+use Platform\Vocab\Services\AchievementCatalog;
 
 class Play extends Component
 {
@@ -164,7 +165,18 @@ class Play extends Component
             ];
 
             if ($entryId) {
-                VocabEntryProgress::recordAnswer(Auth::id(), $entryId, $isCorrect);
+                $progress = VocabEntryProgress::recordAnswer(Auth::id(), $entryId, $isCorrect);
+                foreach ($progress->getAttribute('newly_awarded') ?? [] as $code) {
+                    $def = AchievementCatalog::get($code);
+                    if (!$def) continue;
+                    $this->dispatch('achievement-earned',
+                        code: $code,
+                        name: $def['name'],
+                        description: $def['description'],
+                        icon: $def['icon'],
+                        tier: $def['tier'],
+                    );
+                }
             }
         } catch (\Throwable $e) {
             $this->feedback = [

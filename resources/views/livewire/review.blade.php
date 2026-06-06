@@ -21,6 +21,7 @@
     "
     @endif
 >
+    @include('vocab::livewire.partials.achievement-toast')
     <x-ui-page>
         <x-slot name="navbar">
             <x-ui-page-navbar title="" />
@@ -32,6 +33,15 @@
                 ['label' => 'Wiederholen'],
             ]">
                 @if(!$finished && $total > 0)
+                    <button wire:click="toggleListeningFirst" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors {{ $listeningFirst ? 'text-violet-600 dark:text-violet-400 bg-violet-500/10' : 'text-[var(--ui-muted)] hover:text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)]' }}" title="Hör-Modus {{ $listeningFirst ? 'deaktivieren' : 'aktivieren' }}">
+                        @if($listeningFirst)
+                            @svg('heroicon-o-musical-note', 'w-4 h-4')
+                            <span class="hidden sm:inline">Hören</span>
+                        @else
+                            @svg('heroicon-o-eye', 'w-4 h-4')
+                            <span class="hidden sm:inline">Lesen</span>
+                        @endif
+                    </button>
                     <button wire:click="toggleMute" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg text-[var(--ui-muted)] hover:text-[var(--ui-secondary)] hover:bg-[var(--ui-muted-5)] transition-colors" title="Audio {{ $muteAudio ? 'aktivieren' : 'stummschalten' }}">
                         @if($muteAudio)
                             @svg('heroicon-o-speaker-x-mark', 'w-4 h-4')
@@ -126,7 +136,17 @@
 
                             {{-- Term --}}
                             <div class="flex-1 flex flex-col items-center justify-center text-center">
-                                <div class="text-2xl font-medium text-gray-900 dark:text-gray-100">{{ $current['term'] }}</div>
+                                @if($listeningFirst && !$showAnswer)
+                                    <button wire:click="playCurrentTts" class="group flex flex-col items-center gap-3 px-8 py-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 hover:from-violet-500/20 hover:to-fuchsia-500/20 border border-violet-500/20 transition-all">
+                                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-violet-500/15 group-hover:bg-violet-500/25 transition-colors">
+                                            @svg('heroicon-o-speaker-wave', 'w-8 h-8 text-violet-500 group-hover:scale-110 transition-transform')
+                                        </div>
+                                        <div class="text-sm font-medium text-violet-700 dark:text-violet-300">Karte anhören</div>
+                                        <div class="text-[11px] text-[var(--ui-muted)]">Klick zum erneut Abspielen</div>
+                                    </button>
+                                @else
+                                    <div class="text-2xl font-medium text-gray-900 dark:text-gray-100">{{ $current['term'] }}</div>
+                                @endif
 
                                 @if($showAnswer)
                                     <div class="w-full max-w-md mt-6 pt-6 border-t border-black/5 dark:border-white/10 space-y-3">

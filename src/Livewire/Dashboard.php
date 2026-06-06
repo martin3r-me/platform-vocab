@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Platform\Vocab\Models\VocabEntry;
 use Platform\Vocab\Models\VocabList;
 use Platform\Vocab\Models\VocabUserSettings;
+use Platform\Vocab\Services\VocabAchievementService;
 use Platform\Vocab\Services\VocabStatsService;
 
 class Dashboard extends Component
@@ -15,6 +16,7 @@ class Dashboard extends Component
     public int $settingsDailyGoal = 10;
     public bool $settingsAutoPlayTts = true;
     public bool $settingsKeyboardShortcuts = true;
+    public bool $settingsListeningFirstDefault = false;
 
     public function rendered()
     {
@@ -37,6 +39,7 @@ class Dashboard extends Component
         $this->settingsDailyGoal = $settings->daily_goal;
         $this->settingsAutoPlayTts = $settings->auto_play_tts;
         $this->settingsKeyboardShortcuts = $settings->keyboard_shortcuts;
+        $this->settingsListeningFirstDefault = $settings->listening_first_default;
         $this->showSettingsModal = true;
     }
 
@@ -52,6 +55,7 @@ class Dashboard extends Component
             'daily_goal' => $this->settingsDailyGoal,
             'auto_play_tts' => $this->settingsAutoPlayTts,
             'keyboard_shortcuts' => $this->settingsKeyboardShortcuts,
+            'listening_first_default' => $this->settingsListeningFirstDefault,
         ]);
 
         $this->showSettingsModal = false;
@@ -107,6 +111,8 @@ class Dashboard extends Component
                 'count' => $row->list_count,
             ]);
 
+        $achievements = app(VocabAchievementService::class)->summary($user->id);
+
         return view('vocab::livewire.dashboard', [
             'streak' => $streak,
             'today' => $today,
@@ -118,6 +124,7 @@ class Dashboard extends Component
             'totalReviews' => $totalReviews,
             'enrolledLists' => $enrolledLists,
             'settings' => $settings,
+            'achievements' => $achievements,
             'listsCount' => $listsCount,
             'entriesCount' => $entriesCount,
             'languagesCount' => $languages->count(),
