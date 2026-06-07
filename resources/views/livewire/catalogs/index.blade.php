@@ -1,4 +1,4 @@
-<div>
+<div class="h-full">
 <x-ui-page>
     <x-slot name="navbar">
         <x-ui-page-navbar title="" />

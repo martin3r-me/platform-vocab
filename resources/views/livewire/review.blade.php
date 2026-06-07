@@ -1,4 +1,5 @@
 <div
+    class="h-full"
     x-data
     @play-tts.window="
         if ($el._audio) { $el._audio.pause(); $el._audio.currentTime = 0; }

@@ -1,4 +1,4 @@
-<div>
+<div class="h-full">
     @include('vocab::livewire.partials.achievement-toast')
     <x-ui-page>
         <x-slot name="navbar">

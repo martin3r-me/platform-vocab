@@ -1,4 +1,4 @@
-<div x-data @play-tts.window="
+<div class="h-full" x-data @play-tts.window="
     const audio = new Audio($event.detail.audio);
     audio.play().catch(() => {});
 ">
