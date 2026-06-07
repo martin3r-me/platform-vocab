@@ -1,9 +1,9 @@
 <div
-    x-data="{ audio: null }"
+    x-data
     @play-tts.window="
-        try { if (audio) { audio.pause(); audio.currentTime = 0; } } catch(e) {}
-        audio = new Audio($event.detail.audio);
-        audio.play().catch(() => {});
+        try { if ($el._audio) { $el._audio.pause(); $el._audio.currentTime = 0; } } catch(e) {}
+        $el._audio = new Audio($event.detail.audio);
+        $el._audio.play().catch(() => {});
     "
     @if($keyboardShortcuts && !$finished && $total > 0)
     @keydown.window="

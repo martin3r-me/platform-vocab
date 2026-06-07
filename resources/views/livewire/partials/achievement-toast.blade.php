@@ -61,7 +61,7 @@
                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100" x-text="t.name"></div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="t.description"></div>
                 </div>
-                <button @click="dismiss(t.id)" class="text-gray-400 hover:text-gray-600">
+                <button @click="dismiss(t.id)" class="text-gray-500 dark:text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                 </button>
             </div>

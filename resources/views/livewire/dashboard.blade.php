@@ -106,7 +106,7 @@
                 <div class="lg:col-span-2 relative overflow-hidden rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-sm shadow-black/5 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Letzte 90 Tage</h3>
-                        <div class="flex items-center gap-1 text-[10px] text-gray-400">
+                        <div class="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                             <span>weniger</span>
                             <span class="inline-block w-2.5 h-2.5 rounded-sm bg-black/[0.04] dark:bg-white/10"></span>
                             <span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500/30"></span>
@@ -139,7 +139,7 @@
                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Nächster Meilenstein</h3>
                     <div class="flex items-baseline gap-2 mb-1">
                         <span class="text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ $mastery['mastered'] }}</span>
-                        <span class="text-sm text-gray-400">von {{ $milestone['target'] }} gemeistert</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">von {{ $milestone['target'] }} gemeistert</span>
                     </div>
                     @php
                         $milestonePct = $milestone['target'] > 0 ? (int) round($mastery['mastered'] / $milestone['target'] * 100) : 0;
@@ -154,11 +154,11 @@
                     <div class="mt-5 pt-5 border-t border-black/5 dark:border-white/10 grid grid-cols-2 gap-3 text-center">
                         <div>
                             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $totalReviews }}</div>
-                            <div class="text-[10px] uppercase tracking-wider text-gray-400 mt-1">Reviews total</div>
+                            <div class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1">Reviews total</div>
                         </div>
                         <div>
                             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $mastery['pct'] }}%</div>
-                            <div class="text-[10px] uppercase tracking-wider text-gray-400 mt-1">Mastery</div>
+                            <div class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1">Mastery</div>
                         </div>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
             <div class="relative overflow-hidden rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-sm shadow-black/5 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Achievements</h3>
-                    <span class="text-xs text-gray-400">{{ $achievements['earned_count'] }} / {{ $achievements['total_count'] }} freigeschaltet</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $achievements['earned_count'] }} / {{ $achievements['total_count'] }} freigeschaltet</span>
                 </div>
                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                     @foreach($achievements['items'] as $a)
@@ -190,7 +190,7 @@
                                 @svg('heroicon-o-' . $a['icon'], 'w-5 h-5')
                             </div>
                             <div class="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate">{{ $a['name'] }}</div>
-                            <div class="text-[9px] uppercase tracking-wider text-gray-400 mt-0.5">{{ $tierLabel }}</div>
+                            <div class="text-[9px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-0.5">{{ $tierLabel }}</div>
                             @if($a['earned'])
                                 <div class="absolute top-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900"></div>
                             @endif
@@ -216,16 +216,16 @@
                                 <div class="h-1 rounded-full bg-black/[0.06] dark:bg-white/10 overflow-hidden">
                                     <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" style="width: {{ $list->mastery_pct }}%"></div>
                                 </div>
-                                <div class="text-[10px] text-gray-400 mt-2">{{ $list->entries_count }} Vokabeln</div>
+                                <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-2">{{ $list->entries_count }} Vokabeln</div>
                             </a>
                         @endforeach
                     </div>
                 </div>
             @else
                 <div class="rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-8 text-center">
-                    @svg('heroicon-o-bookmark', 'w-10 h-10 text-gray-400 mx-auto mb-3')
+                    @svg('heroicon-o-bookmark', 'w-10 h-10 text-gray-500 dark:text-gray-400 mx-auto mb-3')
                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Noch keine Liste aktiv</h3>
-                    <p class="text-xs text-gray-400 mb-4">Wähle eine Liste aus und klicke „Lernen", um den Fortschritt zu tracken.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Wähle eine Liste aus und klicke „Lernen", um den Fortschritt zu tracken.</p>
                     <x-ui-button variant="primary" size="sm" :href="route('vocab.catalogs.index')">
                         @svg('heroicon-o-rectangle-stack', 'w-3.5 h-3.5')
                         Zur Bibliothek
@@ -240,23 +240,23 @@
         <x-ui-page-sidebar title="Team-Übersicht" width="w-80" :defaultOpen="false" storeKey="activityOpen" side="right">
             <div class="p-5 space-y-5">
                 <div>
-                    <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">Team-Bibliothek</h3>
+                    <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Team-Bibliothek</h3>
                     <div class="space-y-2">
                         <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-400">Listen</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Listen</span>
                                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $listsCount }}</span>
                             </div>
                         </div>
                         <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-400">Vokabeln</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Vokabeln</span>
                                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $entriesCount }}</span>
                             </div>
                         </div>
                         <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-400">Sprachen</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Sprachen</span>
                                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $languagesCount }}</span>
                             </div>
                         </div>
@@ -265,7 +265,7 @@
 
                 @if($languageStats->isNotEmpty())
                 <div>
-                    <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">Sprach-Verteilung</h3>
+                    <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Sprach-Verteilung</h3>
                     <div class="space-y-2">
                         @foreach($languageStats as $stat)
                         <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
@@ -289,7 +289,7 @@
                 <form wire:submit="saveSettings" class="p-6 space-y-5">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-medium text-gray-900 dark:text-gray-100">Lern-Einstellungen</h2>
-                        <button type="button" wire:click="$set('showSettingsModal', false)" class="text-gray-400 hover:text-gray-600">
+                        <button type="button" wire:click="$set('showSettingsModal', false)" class="text-gray-500 dark:text-gray-400 hover:text-gray-600">
                             @svg('heroicon-o-x-mark', 'w-5 h-5')
                         </button>
                     </div>
@@ -299,14 +299,14 @@
                         <input type="number" wire:model="settingsDailyGoal" min="1" max="200"
                             class="w-full px-3 py-2 text-sm bg-black/[0.03] dark:bg-white/5 rounded-lg border-0 focus:ring-2 focus:ring-violet-500/20" />
                         @error('settingsDailyGoal') <div class="text-xs text-red-500 mt-1">{{ $message }}</div> @enderror
-                        <p class="text-[11px] text-gray-400 mt-1">Wie viele Karten möchtest du pro Tag reviewen? Realistisch sind 5–20.</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Wie viele Karten möchtest du pro Tag reviewen? Realistisch sind 5–20.</p>
                     </div>
 
                     <label class="flex items-start gap-3 p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03] cursor-pointer">
                         <input type="checkbox" wire:model="settingsAutoPlayTts" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-500 focus:ring-violet-500/20" />
                         <div class="flex-1">
                             <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Audio automatisch abspielen</div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">Beim Aufdecken einer Karte wird die Aussprache automatisch abgespielt.</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Beim Aufdecken einer Karte wird die Aussprache automatisch abgespielt.</div>
                         </div>
                     </label>
 
@@ -314,7 +314,7 @@
                         <input type="checkbox" wire:model="settingsKeyboardShortcuts" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-500 focus:ring-violet-500/20" />
                         <div class="flex-1">
                             <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Tastatur-Shortcuts</div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">Space = aufdecken, 1/2/3/4 = Wieder/Schwer/Gut/Einfach.</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Space = aufdecken, 1/2/3/4 = Wieder/Schwer/Gut/Einfach.</div>
                         </div>
                     </label>
 
@@ -322,7 +322,7 @@
                         <input type="checkbox" wire:model="settingsListeningFirstDefault" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-500 focus:ring-violet-500/20" />
                         <div class="flex-1">
                             <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Hör-Modus als Standard</div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">Review startet mit Audio — du hörst zuerst, der Text ist verdeckt. Trainiert Hörverstehen + Aussprache.</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Review startet mit Audio — du hörst zuerst, der Text ist verdeckt. Trainiert Hörverstehen + Aussprache.</div>
                         </div>
                     </label>
 

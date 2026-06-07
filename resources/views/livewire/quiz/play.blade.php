@@ -107,7 +107,7 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="text-sm text-gray-700 dark:text-gray-300">{{ $result['question'] }}</div>
                                     @if(!$result['correct'])
-                                        <div class="text-xs text-gray-400 mt-0.5">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                             Deine Antwort: <span class="text-red-500">{{ $result['user_answer'] }}</span>
                                             &middot; Richtig: <span class="text-emerald-500">{{ $result['expected'] }}</span>
                                         </div>
@@ -243,11 +243,11 @@
                 <div class="p-5 space-y-5">
                     {{-- List Info --}}
                     <div>
-                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">Liste</h3>
+                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Liste</h3>
                         <div class="space-y-2">
                             <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $list->name }}</div>
-                                <div class="text-xs text-gray-400 mt-1">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {{ strtoupper($list->source_language) }} → {{ strtoupper($list->target_language) }}
                                     @if($list->level) · {{ $list->level }} @endif
                                 </div>
@@ -258,11 +258,11 @@
                     {{-- Live Stats --}}
                     @if($quizStarted && !$quizFinished)
                     <div>
-                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">Ergebnis</h3>
+                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Ergebnis</h3>
                         <div class="space-y-2">
                             <div class="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.03]">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs text-gray-400">Fortschritt</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Fortschritt</span>
                                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $currentIndex + ($answered ? 1 : 0) }} / {{ count($questions) }}</span>
                                 </div>
                             </div>
@@ -285,7 +285,7 @@
                     {{-- Quiz Finished Stats --}}
                     @if($quizFinished)
                     <div>
-                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-3">Ergebnis</h3>
+                        <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Ergebnis</h3>
                         <div class="space-y-2">
                             <div class="p-3 rounded-lg {{ $correctCount >= count($results) * 0.7 ? 'bg-emerald-500/5' : 'bg-amber-500/5' }}">
                                 <div class="flex items-center justify-between">
