@@ -1,7 +1,7 @@
 <div
     x-data
     @play-tts.window="
-        try { if ($el._audio) { $el._audio.pause(); $el._audio.currentTime = 0; } } catch(e) {}
+        if ($el._audio) { $el._audio.pause(); $el._audio.currentTime = 0; }
         $el._audio = new Audio($event.detail.audio);
         $el._audio.play().catch(() => {});
     "
