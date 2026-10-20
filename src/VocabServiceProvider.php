@@ -3,7 +3,6 @@
 namespace Platform\Vocab;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Platform\Core\PlatformCore;
@@ -23,7 +22,7 @@ class VocabServiceProvider extends ServiceProvider
         if (
             config()->has('vocab.routing') &&
             config()->has('vocab.navigation') &&
-            Schema::hasTable('modules')
+            PlatformCore::modulesTableExists()
         ) {
             PlatformCore::registerModule([
                 'key'        => 'vocab',
