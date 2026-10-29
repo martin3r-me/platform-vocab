@@ -27,6 +27,7 @@ class VocabServiceProvider extends ServiceProvider
             PlatformCore::registerModule([
                 'key'        => 'vocab',
                 'title'      => 'Vokabeln',
+                'group'      => 'content',
                 'routing'    => config('vocab.routing'),
                 'guard'      => config('vocab.guard'),
                 'navigation' => config('vocab.navigation'),
