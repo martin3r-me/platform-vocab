@@ -76,7 +76,7 @@ class Index extends Component
 
         try {
             $team = Auth::user()->currentTeam;
-            $openAi = app(\Platform\Core\Services\OpenAiService::class);
+            $claude = app(\Platform\Core\Services\AnthropicProvider::class);
 
             $list = VocabList::create([
                 'team_id' => $team->id,
@@ -95,9 +95,9 @@ class Index extends Component
                 $this->generateCount
             );
 
-            $result = $openAi->chat(
+            $result = $claude->chat(
                 [['role' => 'user', 'content' => $prompt]],
-                options: ['tools' => false, 'max_tokens' => 4000, 'temperature' => 0.7]
+                ['model' => 'fast', 'max_tokens' => 4000, 'temperature' => 0.7]
             );
 
             $content = $result['content'] ?? '';

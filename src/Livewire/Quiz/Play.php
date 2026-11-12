@@ -63,11 +63,10 @@ class Play extends Component
                 default => VocabPrompts::quizTranslate($entriesData, $this->direction, $this->list->source_language, $this->list->target_language, $count),
             };
 
-            $openAi = app(\Platform\Core\Services\OpenAiService::class);
-            $result = $openAi->chat(
+            $claude = app(\Platform\Core\Services\AnthropicProvider::class);
+            $result = $claude->chat(
                 [['role' => 'user', 'content' => $prompt]],
-                'gpt-4o-mini',
-                ['tools' => false, 'max_tokens' => 3000, 'temperature' => 0.5]
+                ['model' => 'fast', 'max_tokens' => 3000, 'temperature' => 0.5]
             );
 
             $content = $result['content'] ?? '';
@@ -132,11 +131,10 @@ class Play extends Component
                     $this->mode
                 );
 
-                $openAi = app(\Platform\Core\Services\OpenAiService::class);
-                $result = $openAi->chat(
+                $claude = app(\Platform\Core\Services\AnthropicProvider::class);
+                $result = $claude->chat(
                     [['role' => 'user', 'content' => $prompt]],
-                    'gpt-4o-mini',
-                    ['tools' => false, 'max_tokens' => 500, 'temperature' => 0.3]
+                    ['model' => 'fast', 'max_tokens' => 500, 'temperature' => 0.3]
                 );
 
                 $content = $result['content'] ?? '';

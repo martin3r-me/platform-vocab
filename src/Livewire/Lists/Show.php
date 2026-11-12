@@ -202,11 +202,10 @@ class Show extends Component
                 $this->list->level ?? 'B1'
             );
 
-            $openAi = app(\Platform\Core\Services\OpenAiService::class);
-            $result = $openAi->chat(
+            $claude = app(\Platform\Core\Services\AnthropicProvider::class);
+            $result = $claude->chat(
                 [['role' => 'user', 'content' => $prompt]],
-                'gpt-4o-mini',
-                ['tools' => false, 'max_tokens' => 3000, 'temperature' => 0.6]
+                ['model' => 'fast', 'max_tokens' => 3000, 'temperature' => 0.6]
             );
 
             $content = $result['content'] ?? '';
@@ -242,7 +241,7 @@ class Show extends Component
         $this->generating = true;
 
         try {
-            $openAi = app(\Platform\Core\Services\OpenAiService::class);
+            $claude = app(\Platform\Core\Services\AnthropicProvider::class);
             $prompt = \Platform\Vocab\Prompts\VocabPrompts::generateVocab(
                 $this->generateTopic,
                 $this->list->source_language,
@@ -251,10 +250,9 @@ class Show extends Component
                 $this->generateCount
             );
 
-            $result = $openAi->chat(
+            $result = $claude->chat(
                 [['role' => 'user', 'content' => $prompt]],
-                'gpt-4o-mini',
-                ['tools' => false, 'max_tokens' => 4000, 'temperature' => 0.7]
+                ['model' => 'fast', 'max_tokens' => 4000, 'temperature' => 0.7]
             );
 
             $content = $result['content'] ?? '';
